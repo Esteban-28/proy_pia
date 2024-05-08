@@ -1,13 +1,17 @@
+#Importacion de librerias
 from flask import Flask, request, render_template, redirect, url_for, session
 from wtforms import Form, StringField, PasswordField, validators, SubmitField, IntegerField, SelectField
 import sqlite3
 import os
 
+#Arranque de la app
 app = Flask(__name__)
 
+#Conexion a la base de datos
 con = sqlite3.connect('password.db', check_same_thread=False)
 cur = con.cursor()
 
+#Formulario de registro
 class RegistrationForm(Form):
   username = StringField('Username', [validators.length(min=4, max=25)])
   password = PasswordField('New Password',[
@@ -17,6 +21,7 @@ class RegistrationForm(Form):
   confirm = PasswordField('Repeat Password')
   submit = SubmitField('Aceptar', render_kw={"class": "btn btn-success text-white w-100 mt-4 fw-semibold shadow-sm"})
 
+#Formulario de login
 class LoginForm(Form):
   user = StringField('User', [
     validators.length(min=4, max=25)
@@ -26,6 +31,7 @@ class LoginForm(Form):
   ])
   sub = SubmitField('Log in')
 
+#Formulario de datos
 class MetricForm(Form):
   kilos = IntegerField(label="Ingresa tu peso en kilogramos")
   altura = IntegerField(label="Ingresa tu altura en centimetros")
@@ -33,11 +39,14 @@ class MetricForm(Form):
   sexo = SelectField('Sexo', choices=[("M"), ("F")])
   submit = SubmitField('Aceptar')
 
+#Ruta de la pagina de bienvenida.
 @app.route('/', methods=['GET', 'POST'])
 def home():
-  session.clear()
+  if 'user_id' in session:
+    session.clear()
   return render_template('index.html')
 
+#Ruta a la  pagina de registro
 @app.route('/register', methods=['GET', 'POST'])
 def register():
   form = RegistrationForm(request.form)
@@ -51,6 +60,7 @@ def register():
     return redirect(url_for('login'))
   return render_template('register.html', form=form)
 
+#Ruta a la pagina de login
 @app.route('/login', methods=['GET', 'POST'])
 def login():
   form = LoginForm(request.form)
@@ -65,17 +75,27 @@ def login():
       return render_template('login.html', form=form)
   return render_template('login.html', form=form)
 
+#Ruta a la pagina principal
 @app.route('/dashboard', methods=["GET", "POST"])
 def dashboard():
   if 'user_id' in session:
     user = con.execute('SELECT * FROM users WHERE user_id = ?', (session['user_id'], )).fetchone()
-    msg = 'Bienvenido '+user[1]
+    msg = 'Bienvenid@ '+user[1]
     metrics = con.execute('SELECT * FROM metric WHERE user_id = ?', (session['user_id'], )).fetchone()
+    if metrics != None:
+      imc = float((metrics[5]) / (metrics[2]/100)**2)
+      if imc > 18.5 and imc < 24.9:
+        oper = 0
+      elif imc > 25 and imc < 29.9:
+        oper = 1
+      elif imc > 30:
+        oper = 2
     if metrics == None:
       return redirect(url_for('info'))
-    return render_template('dashboard.html', username=user[1], msg=msg, metrics=metrics)
+    return render_template('dashboard.html', username=user[1], msg=msg, metrics=metrics, imc=("%.2f" % imc), oper=oper)
   return redirect(url_for('login'))
 
+#Ruta al formulario
 @app.route('/dashboard/info', methods=["GET", "POST"])
 def info():
   if 'user_id' in session:
