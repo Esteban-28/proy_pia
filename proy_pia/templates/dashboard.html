@@ -9,16 +9,29 @@
 <body class="bg-info">
   <nav class="navbar bg-info border-bottom border-body" data-bs-theme="dark">
     <div class="container-fluid color-lightdark">
-      <span class="navbar-brand mb-0 fw-bold">Well Food</span>
+      <span class="navbar-brand mb-0 fs-3 fw-bold">Well Food</span>
       <form class="d-flex" role="button">
-        <button type="button" class="btn btn-outline-success" onclick="location.href='{{ url_for('home') }}'">Cerrar Sesion</button>
+        <button type="button" class="fs-4 btn btn-outline-success" onclick="location.href='{{ url_for('home') }}'">Cerrar Sesion</button>
       </form>
     </div>
   </nav>
 
-  <nav class="text-light fs-1 fw-bold">
-    {{ msg }}
-  </nav>
+  <div class="d-flex justify-content-between p-2 text-light fs-4 fw-bold">
+    <div class="mt-4">{{ msg }}</div>
+    {% if metrics != None %}
+      {% if oper[1] == 'Saludable' %}
+      <div class="mt-4">Estado: <span class="alert alert-success">{{oper[1]}}</span> </div>
+      {% endif %}
+
+      {% if oper[1] == 'Sobrepeso' %}
+      <div class="mt-4">Estado: <span class="alert alert-warning p-1">{{oper[1]}}</span> </div>
+      {% endif %}
+
+      {% if oper[1] == 'Obesidad' %}
+      <div class="mt-4">Estado: <span class="alert alert-danger p-1">{{oper[1]}}</span> </div>
+      {% endif %}
+    {% endif %}
+  </div>
 
 
   {% if metrics != None %}
@@ -47,9 +60,9 @@
     
   {% endif %}
 
-  <nav class="text-light fs-1 fw-bold"> Menus recomendados:</nav>
+  <nav class="text-light fs-4 fw-bold p-2"> Menus recomendados:</nav>
 
-  {% if oper == 0 %}
+  {% if oper[0] == 0 %}
   <div class="bg-info p-3 vh-30 mt-4 text-center">
     <div id="carouselExampleIndicators" class="carousel slide">
       <div class="carousel-indicators">
@@ -57,6 +70,7 @@
       </div>
       <div class="carousel-inner">
         <div class="carousel-item active">
+          <p class="text-light fs-4 fw-bold">1,600 Kcal</p>
           <img src="/static/saludable/menu7.png" class="d-block w-100" alt="...">
         </div>
       </div>
@@ -72,7 +86,7 @@
   </div>
   {% endif %}
 
-  {% if oper == 1 %}
+  {% if oper[0] == 1 %}
   <div class="bg-info p-3 vh-30 mt-4 text-center">
     <div id="carouselExampleIndicators" class="carousel slide">
       <div class="carousel-indicators">
@@ -81,15 +95,25 @@
         <button type="button" data-bs-target="#carouselExampleIndicators" data-bs-slide-to="2" aria-label="Slide 3"></button>
       </div>
       <div class="carousel-inner">
+
+        {% if oper[2] == 'M' %}
         <div class="carousel-item active">
-          <img src="/static/sobrepeso/menu1.png" class="d-block w-100" alt="...">
+          <p class="text-light fs-4 fw-bold">2,300 Kcal</p>
+          <img src="/static/sobrepeso/menu1-M.png" class="d-block w-100" alt="...">
         </div>
+        {% endif %}
+
         <div class="carousel-item">
+          <p class="text-light fs-4 fw-bold">1,500 Kcal</p>
           <img src="/static/sobrepeso/menu2.png" class="d-block w-100" alt="...">
         </div>
+
+        {% if oper[2] == 'F' %}
         <div class="carousel-item">
-          <img src="/static/sobrepeso/menu5.png" class="d-block w-100" alt="...">
+          <p class="text-light fs-4 fw-bold">1,500 Kcal</p>
+          <img src="/static/sobrepeso/menu5-F.png" class="d-block w-100" alt="...">
         </div>
+        {% endif %}
       </div>
       <button class="carousel-control-prev" type="button" data-bs-target="#carouselExampleIndicators" data-bs-slide="prev">
         <span class="carousel-control-prev-icon" aria-hidden="true"></span>

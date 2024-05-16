@@ -85,11 +85,11 @@ def dashboard():
     if metrics != None:
       imc = float((metrics[5]) / (metrics[2]/100)**2)
       if imc > 18.5 and imc < 24.9:
-        oper = 0
+        oper = [0,"Saludable",metrics[4]]
       elif imc > 25 and imc < 29.9:
-        oper = 1
+        oper = [1,"Sobrepeso",metrics[4]]
       elif imc > 30:
-        oper = 2
+        oper = [2,"Obesidad",metrics[4]]
     if metrics == None:
       return redirect(url_for('info'))
     return render_template('dashboard.html', username=user[1], msg=msg, metrics=metrics, imc=("%.2f" % imc), oper=oper)
@@ -106,7 +106,7 @@ def info():
         con.execute("INSERT INTO metric (user_id, altura, edad, sexo, kilos) VALUES (?, ?, ?, ?, ?)", data)
         con.commit()
       except sqlite3.IntegrityError:
-        print("Error")
+        #print("Error")
         return redirect(url_for('info'))
       return redirect(url_for('dashboard'))
     return render_template('info.html', form=form)
