@@ -112,6 +112,20 @@ def info():
     return render_template('info.html', form=form)
   return redirect(url_for('login'))
 
+#Ruta a editar
+@app.route('/dashboard/edit/<id>')
+def edit():
+  return "Edit"
+
+#Ruta a eliminar
+@app.route('/dashboard/delete/<string:id>', methods=["GET", "POST"])
+def delete(id):
+  if 'user_id' in session:
+    con.execute("DELETE FROM metric WHERE user_id = ?", id)
+    con.commit()
+  print(id)
+  return redirect(url_for('dashboard'))
+
 
 if __name__ == '__main__':
   app.secret_key = os.urandom(16)
