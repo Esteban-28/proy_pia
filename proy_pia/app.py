@@ -33,9 +33,9 @@ class LoginForm(Form):
 
 #Formulario de datos
 class MetricForm(Form):
-  kilos = IntegerField(label="Ingresa tu peso en kilogramos")
-  altura = IntegerField(label="Ingresa tu altura en centimetros")
-  edad = IntegerField(label="Ingresa tu edad en años")
+  kilos = IntegerField(label="Ingresa tu peso en kilogramos", validators=[validators.NumberRange(min=1, max=300)])
+  altura = IntegerField(label="Ingresa tu altura en centimetros", validators=[validators.NumberRange(min=1, max=300)])
+  edad = IntegerField(label="Ingresa tu edad en años", validators=[validators.NumberRange(min=15, max=120)])
   sexo = SelectField('Sexo', choices=[("M"), ("F")])
   submit = SubmitField('Aceptar')
 
@@ -83,13 +83,19 @@ def dashboard():
     msg = 'Bienvenid@ '+user[1]
     metrics = con.execute('SELECT * FROM metric WHERE user_id = ?', (session['user_id'], )).fetchone()
     if metrics != None:
-      imc = float((metrics[5]) / (metrics[2]/100)**2)
+      try:
+        imc = float((metrics[5]) / (metrics[2]/100)**2)
+      except ZeroDivisionError:
+        return redirect(url_for('info'))
       if imc > 18.5 and imc < 24.9:
         oper = [0,"Saludable",metrics[4]]
       elif imc > 25 and imc < 29.9:
         oper = [1,"Sobrepeso",metrics[4]]
       elif imc > 30:
         oper = [2,"Obesidad",metrics[4]]
+      elif imc < 18.4:
+        oper = [3,"Error", 0]
+        return redirect(url_for('info'))
     if metrics == None:
       return redirect(url_for('info'))
     return render_template('dashboard.html', username=user[1], msg=msg, metrics=metrics, imc=("%.2f" % imc), oper=oper)
@@ -99,6 +105,11 @@ def dashboard():
 @app.route('/dashboard/info', methods=["GET", "POST"])
 def info():
   if 'user_id' in session:
+    validator = con.execute("SELECT * FROM metric WHERE user_id = ?", (session['user_id'], ))
+    if validator != None:
+      con.execute("DELETE FROM metric WHERE user_id = ?", (session['user_id'], ))
+      con.commit()
+
     form = MetricForm(request.form)
     if request.method == "POST" and form.validate():
       data = [session['user_id'], form.altura.data, form.edad.data, form.sexo.data, form.kilos.data]
@@ -121,7 +132,7 @@ def edit():
 @app.route('/dashboard/delete/<string:id>', methods=["GET", "POST"])
 def delete(id):
   if 'user_id' in session:
-    con.execute("DELETE FROM metric WHERE user_id = ?", id)
+    con.execute("DELETE FROM metric WHERE user_id = ?", (id,))
     con.commit()
   print(id)
   return redirect(url_for('dashboard'))
